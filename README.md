@@ -33,3 +33,14 @@ To launch the FastAPI-based REST server with its associated PostgreSQL database 
 - The documentation with the endpoint details (using Swagger) can be found at `http://localhost:8000/docs`
 
 Note that the Python dependencies of this project are listed in `requirements.txt`, which are automatically fetched thanks to the `Dockerfile` setup.
+
+# Pre-commit linting
+
+We use [ruff](https://docs.astral.sh/ruff/) for linting and formatting the codebase, enforced automatically via [pre-commit](https://pre-commit.com/), i.e., before each git commit.
+
+To install and set up this pre-commit hook:
+
+```bash
+pip install -r requirements-dev.txt
+pre-commit install
+```

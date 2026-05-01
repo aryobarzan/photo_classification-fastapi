@@ -16,5 +16,10 @@ async def root():
     return {"message": "Hello World"}
 
 
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
+
 # TODO: rate limiting profile update
 # TODO: nsfw check

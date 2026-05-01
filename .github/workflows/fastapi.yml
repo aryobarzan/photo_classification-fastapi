@@ -1,0 +1,64 @@
+name: CICD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # Verify that the FastAPI server starts correctly
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.13
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Run FastAPI app
+        run: |
+          uvicorn main:app --host 0.0.0.0 --port 8000 &
+          sleep 3
+
+      # curl fetches the content of the specified URL.
+      # -s ensures that messages other than the response body are not printed. (silent)
+      # grep searches for the specified pattern, with -q ensuring that only the exit status is returned. (quiet)
+      - name: Check if FastAPI app is running
+        run: |
+          curl -s http://localhost:8000/health | grep -q '"status": "ok"' || exit 1
+
+      # pkill kills the process matching the specified pattern.
+      # -f matches against the full command.
+      - name: Stop FastAPI app
+        run: |
+          pkill -f "uvicorn main:app"
+
+  # Verify that the docker image builds and the container with the FastAPI server starts correctly
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+      # -t assigns a tag/name to the image.
+      - name: Build Docker image
+        run: |
+          docker build -t photo-classification-fastapi .
+      # -d runs the container in detached mode, i.e., in the background.
+      - name: Run Docker container
+        run: |
+          docker run -d -p 8000:8000 --name photo-classification-container photo-classification-fastapi
+      - name: Check if FastAPI app is running in Docker
+        run: |
+          curl -s http://localhost:8000/health | grep -q '"status": "ok"' || exit 1
+      - name: Stop Docker container
+        run: |
+          docker stop photo-classification-container
+          docker rm photo-classification-container
