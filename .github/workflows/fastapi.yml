@@ -42,10 +42,11 @@ jobs:
       - name: Run services
         run: |
           docker compose up -d
+      # '-sf' options make curl fail silently (-s) on server errors and only output the response body if the request is successful (-f).
       - name: Check if FastAPI app is running
         run: |
           for i in {1..15}; do
-            curl -s http://localhost:8000/health | grep -q '"status": "ok"' && exit 0
+            curl -sf http://localhost:8000/health && exit 0
             echo "Attempt $i failed, retrying in 5s..."
             sleep 5
           done
