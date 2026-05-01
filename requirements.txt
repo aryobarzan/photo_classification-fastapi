@@ -37,6 +37,7 @@ packaging==26.2
 pillow==12.2.0
 psycopg2-binary==2.9.12
 pwdlib==0.3.0
+pycountry==26.2.16
 pycparser==3.0
 pycryptodome==3.23.0
 pydantic==2.13.3
