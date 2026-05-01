@@ -1,0 +1,49 @@
+services:
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=1234
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - STORAGE_ENDPOINT=http://garage:3900
+      - STORAGE_ACCESS_KEY=${STORAGE_ACCESS_KEY}
+      - STORAGE_SECRET_KEY=${STORAGE_SECRET_KEY}
+      - STORAGE_BUCKET_PROFILE_PICTURES=${STORAGE_BUCKET_PROFILE_PICTURES}
+      - SECRET_KEY=${SECRET_KEY}
+    depends_on:
+      - postgres
+      - garage
+
+  postgres:
+    image: postgres:18.3
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    ports:
+      - "1234:5432"
+
+  garage:
+    image: dxflrs/garage:v2.3.0
+    environment:
+      - GARAGE_RPC_SECRET=${GARAGE_RPC_SECRET}
+    ports:
+      - "3900:3900" # S3 API
+      - "3902:3902" # Admin API
+    volumes:
+      - ./garage.toml:/etc/garage.toml
+      - garage_meta:/var/lib/garage/meta
+      - garage_data:/var/lib/garage/data
+
+volumes:
+  postgres_data:
+  garage_meta:
+  garage_data:
