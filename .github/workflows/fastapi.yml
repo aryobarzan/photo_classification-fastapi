@@ -44,8 +44,14 @@ jobs:
           docker compose up -d
       - name: Check if FastAPI app is running
         run: |
-          sleep 10
-          curl -s http://localhost:8000/health | grep -q '"status": "ok"' || exit 1
+          for i in {1..15}; do
+            curl -s http://localhost:8000/health | grep -q '"status": "ok"' && exit 0
+            echo "Attempt $i failed, retrying in 5s..."
+            sleep 5
+          done
+          echo "Health check failed after 15 attempts"
+          docker compose logs backend
+          exit 1
       - name: Stop services
         run: |
           docker compose down
