@@ -41,11 +41,11 @@ jobs:
       # -d runs all services defined in docker-compose.yaml in detached mode, i.e., in the background.
       - name: Run services
         run: |
-          docker-compose up -d
+          docker compose up -d
       - name: Check if FastAPI app is running
         run: |
           sleep 10
           curl -s http://localhost:8000/health | grep -q '"status": "ok"' || exit 1
       - name: Stop services
         run: |
-          docker-compose down
+          docker compose down
