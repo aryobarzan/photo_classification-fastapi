@@ -16,11 +16,19 @@ def upsert_user_profile(
     user_id: int,
     user_profile: UserProfileCreateSchema,
     profile_picture_url: str | None = None,
+    profile_picture_is_nsfw: bool | None = None,
+    profile_picture_classification: str | None = None,
 ):
     # Upsert approach inspired by: https://docs.sqlalchemy.org/en/21/dialects/postgresql.html#insert-on-conflict-upsert
     user_profile_data = user_profile.model_dump()
     if profile_picture_url is not None:
         user_profile_data["profile_picture_url"] = profile_picture_url
+    if profile_picture_is_nsfw is not None:
+        user_profile_data["profile_picture_is_nsfw"] = profile_picture_is_nsfw
+    if profile_picture_classification is not None:
+        user_profile_data["profile_picture_classification"] = (
+            profile_picture_classification
+        )
     # `insert` will attempt to create a new user profile.
     # `values(...)` specifies the user profile data itself, including the `user_id`.
     # If `insert` fails due to a conflict, i.e., an entry with the same `user_id` already exists, `on_conflict_do_update` will be triggered.
@@ -38,7 +46,13 @@ def upsert_user_profile(
     ).scalar_one()
 
 
-def set_user_profile_picture(db: Session, user_id: int, profile_picture_url: str):
+def set_user_profile_picture(
+    db: Session,
+    user_id: int,
+    profile_picture_url: str | None,
+    profile_picture_is_nsfw: bool | None = None,
+    profile_picture_classification: str | None = None,
+) -> UserProfile:
     db_user_profile = db.execute(
         select(UserProfile).where(UserProfile.user_id == user_id)
     ).scalar_one_or_none()
@@ -47,6 +61,8 @@ def set_user_profile_picture(db: Session, user_id: int, profile_picture_url: str
             f"User profile for user with id '{user_id}' does not exist."
         )
     db_user_profile.profile_picture_url = profile_picture_url
+    db_user_profile.profile_picture_is_nsfw = profile_picture_is_nsfw
+    db_user_profile.profile_picture_classification = profile_picture_classification
     db.commit()
     db.refresh(db_user_profile)
     return db_user_profile

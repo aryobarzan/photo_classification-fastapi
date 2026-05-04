@@ -20,3 +20,10 @@ def upload_profile_picture(file_bytes: bytes, filename: str) -> str:
     bucket = getenv("STORAGE_BUCKET_PROFILE_PICTURES") or "profile-pictures"
     s3.put_object(Bucket=bucket, Key=filename, Body=file_bytes)
     return f"{getenv('STORAGE_ENDPOINT')}/{bucket}/{filename}"
+
+
+def delete_profile_picture(filename: str):
+    s3 = get_s3_client()
+
+    bucket = getenv("STORAGE_BUCKET_PROFILE_PICTURES") or "profile-pictures"
+    s3.delete_object(Bucket=bucket, Key=filename)

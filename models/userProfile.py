@@ -27,6 +27,9 @@ class UserProfile(Base):
     country_of_origin: Mapped[str] = mapped_column(index=True)
     description: Mapped[str | None] = mapped_column()
     profile_picture_url: Mapped[str | None] = mapped_column()
+    # Initially, when the user uploads a profile picture, we do not yet know whether the picture is nsfw.
+    # Hence, `profile_picture_is_nsfw` is set to None at the beginning. After nsfw detection is done, it will be updated to either True or False.
+    profile_picture_is_nsfw: Mapped[bool | None] = mapped_column()
     profile_picture_classification: Mapped[str | None] = mapped_column()
     # `server_default` and `onupdate` ensure timestamps are automatically set/updated by the database.
     # `func.now()` is a SQLAlchemy function that generates the current timestamp in the database.
