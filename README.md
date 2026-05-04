@@ -32,6 +32,10 @@ To launch the FastAPI-based REST server with its associated PostgreSQL database 
 - The server will be accessible from your host machine at `http://localhost:8000/`
 - The documentation with the endpoint details (using Swagger) can be found at `http://localhost:8000/docs`
 
+To have sample data for testing purposes, run the following command once while the docker containers are running: `docker-compose --profile seed run --rm seeder`
+
+- This will run the script `sample-generator.py`.
+
 Note that the Python dependencies of this project are listed in `requirements.txt`, which are automatically fetched thanks to the `Dockerfile` setup.
 
 # Pre-commit linting
