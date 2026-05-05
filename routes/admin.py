@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from schemas.userProfile import UserProfileReadSchema
 from database.session import get_db
 from sqlalchemy.orm import Session
@@ -28,7 +28,8 @@ async def get_user_profiles(
     min_age: int | None = None,
     max_age: int | None = None,
     exact_age: int | None = None,
-    genders: list[Gender] | None = None,
+    # Mark explicitly with Query annotation parse the query list parameter correctly
+    genders: list[Gender] | None = Query(default=None),
     place_of_residence: str | None = None,
     country_of_origin: str | None = None,
     db: Session = Depends(get_db),
