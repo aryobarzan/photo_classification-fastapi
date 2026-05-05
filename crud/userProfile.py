@@ -22,10 +22,11 @@ def upsert_user_profile(
     # Upsert approach inspired by: https://docs.sqlalchemy.org/en/21/dialects/postgresql.html#insert-on-conflict-upsert
     user_profile_data = user_profile.model_dump()
     if profile_picture_filename is not None:
+        # A picture is being uploaded: always include all three picture fields so
+        # that any existing classification/nsfw values are reset to None, ensuring the
+        # polling endpoint correctly returns "processing" until the new background task finishes.
         user_profile_data["profile_picture_filename"] = profile_picture_filename
-    if profile_picture_is_nsfw is not None:
         user_profile_data["profile_picture_is_nsfw"] = profile_picture_is_nsfw
-    if profile_picture_classification is not None:
         user_profile_data["profile_picture_classification"] = (
             profile_picture_classification
         )
