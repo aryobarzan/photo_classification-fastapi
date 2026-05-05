@@ -27,6 +27,7 @@ A one-time setup run is required to finalize the storage layer's (Garage) settin
 6. Run the following command: `docker compose exec garage /garage bucket create profile-pictures`
 7. Run the following command: `docker compose exec garage /garage bucket allow --read --write profile-pictures --key my-app-key`
 8. Run the following command: `docker-compose down`
+9. Run the following command: `docker-compose build backend`
 
 Your setup of the environment file and docker is now complete.
 
