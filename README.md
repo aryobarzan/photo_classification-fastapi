@@ -1,6 +1,10 @@
-# Setup
+# Photo Classification - Backend (FastAPI)
 
-## Environment file (.env)
+For design and security documentation, view the separate `OVERVIEW.md` file.
+
+## Setup
+
+### Environment file (.env)
 
 Adjust the example environment `.env-example` by replacing the missing values, then rename the file to `.env`.
 
@@ -9,7 +13,7 @@ Adjust the example environment `.env-example` by replacing the missing values, t
 
 The other key-value pairs can be left as is for this demonstration.
 
-## docker-compose.yaml
+### docker-compose.yaml
 
 A one-time setup run is required to finalize the storage layer's (Garage) settings.
 
@@ -26,7 +30,7 @@ A one-time setup run is required to finalize the storage layer's (Garage) settin
 
 Your setup of the environment file and docker is now complete.
 
-# Run
+## Run
 
 To launch the FastAPI-based REST server with its associated PostgreSQL database and Garage storage layer, use `docker-compose up -d`.
 
@@ -39,7 +43,7 @@ To have sample data for testing purposes, run the following command once while t
 
 Note that the Python dependencies of this project are listed in `requirements.txt`, which are automatically fetched thanks to the `Dockerfile` setup.
 
-# Pre-commit linting
+## Pre-commit linting
 
 We use [ruff](https://docs.astral.sh/ruff/) for linting and formatting the codebase, enforced automatically via [pre-commit](https://pre-commit.com/), i.e., before each git commit.
 
