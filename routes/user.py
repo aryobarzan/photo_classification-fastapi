@@ -14,7 +14,11 @@ from fastapi import (
 from fastapi.responses import Response
 from fastapi.security import OAuth2PasswordRequestForm
 from schemas.user import UserCreateSchema, UserReadSchema, UserRegisterLoginSchema
-from schemas.userProfile import UserProfileCreateSchema, UserProfileReadSchema
+from schemas.userProfile import (
+    UserProfileCreateSchema,
+    UserProfilePictureStatusSchema,
+    UserProfileReadSchema,
+)
 from database.session import get_db, SessionLocal
 from sqlalchemy.orm import Session
 import crud.user as crud_user
@@ -193,6 +197,36 @@ async def read_user_profile(
     if not db_user_profile:
         raise HTTPException(status_code=404, detail="User profile not found.")
     return db_user_profile
+
+
+@router.get(
+    "/profile/picture/status",
+    status_code=200,
+    response_model=UserProfilePictureStatusSchema,
+)
+async def get_profile_picture_status(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    db_user_profile = crud_user_profile.get_user_profile_by_user_id(db, current_user.id)
+    if not db_user_profile:
+        raise HTTPException(status_code=404, detail="User profile not found.")
+    if db_user_profile.profile_picture_is_nsfw is None:
+        if db_user_profile.profile_picture_filename is None:
+            # No picture was uploaded
+            status = "done"
+        else:
+            # Still processing whether the picture is NSFW or not
+            status = "processing"
+    elif db_user_profile.profile_picture_is_nsfw:
+        # The picture was detected as NSFW and has been deleted. No classification will be performed.
+        status = "rejected"
+    else:
+        # The picture was detected as not NSFW, and classification has been performed.
+        status = "done"
+    return UserProfilePictureStatusSchema(
+        status=status, classification=db_user_profile.profile_picture_classification
+    )
 
 
 # Endpoint to fetch the profile picture of a user. This endpoint requires no authentication.

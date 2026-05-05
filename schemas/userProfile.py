@@ -33,3 +33,9 @@ class UserProfileReadSchema(BaseModel):
     profile_picture_classification: str | None = None
     created_at: datetime
     updated_at: datetime
+
+
+# Used to poll the status of profile picture processing (NSFW and classification results)
+class UserProfilePictureStatusSchema(BaseModel):
+    status: str  # processing | rejected | done
+    classification: str | None = None
