@@ -11,6 +11,7 @@ from fastapi import (
     UploadFile,
     BackgroundTasks,
 )
+from fastapi.responses import Response
 from fastapi.security import OAuth2PasswordRequestForm
 from schemas.user import UserCreateSchema, UserReadSchema, UserRegisterLoginSchema
 from schemas.userProfile import UserProfileCreateSchema, UserProfileReadSchema
@@ -18,11 +19,15 @@ from database.session import get_db, SessionLocal
 from sqlalchemy.orm import Session
 import crud.user as crud_user
 import crud.userProfile as crud_user_profile
-from core.security import create_access_token, verify_password
+from core.security import create_access_token, hash_password, verify_password
 from core.dependencies import get_current_user
 from models.user import User
 from core.detection import detect_nsfw_content, classify_image
-from core.storage import upload_profile_picture, delete_profile_picture
+from core.storage import (
+    upload_profile_picture,
+    delete_profile_picture,
+    get_profile_picture,
+)
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -53,7 +58,9 @@ async def login(
     db: Session = Depends(get_db),
 ):
     db_user = crud_user.get_user_by_username(db, form_data.username)
-    hashed_password = db_user.hashed_password if db_user else ""
+    # If the user does not exist, we still perform a dummy password verification.
+    # reason: prevent timing attacks that can reveal whether a user exists based on how long the server takes to respond.
+    hashed_password = db_user.hashed_password if db_user else hash_password("dummy")
     password_valid = verify_password(form_data.password, hashed_password)
     if not db_user or not password_valid:
         raise HTTPException(status_code=401, detail="Incorrect username or password.")
@@ -77,7 +84,6 @@ class ProfilePictureUpload:
     filename: str
     file_bytes: bytes
     content_type: str
-    url: str
 
 
 # Validate the profile picture's type and size, then upload it to storage.
@@ -94,7 +100,7 @@ async def validate_and_upload_profile_picture(
     extension = profile_picture.content_type.split("/")[-1]
     filename = f"{user_id}_profile_picture.{extension}"
     try:
-        url = upload_profile_picture(picture_bytes, filename)
+        upload_profile_picture(picture_bytes, filename, profile_picture.content_type)
     except Exception:
         raise HTTPException(
             status_code=503,
@@ -104,7 +110,6 @@ async def validate_and_upload_profile_picture(
         filename=filename,
         file_bytes=picture_bytes,
         content_type=profile_picture.content_type,
-        url=url,
     )
 
 
@@ -128,7 +133,7 @@ async def remove_if_nsfw_and_classify(
                 upload.file_bytes, upload.content_type
             )
             crud_user_profile.set_user_profile_picture(
-                db, user_id, upload.url, False, classification_result
+                db, user_id, upload.filename, False, classification_result
             )
     finally:
         db.close()
@@ -165,7 +170,7 @@ async def create_user_profile(
         db,
         user_id=current_user.id,
         user_profile=user_profile_data,
-        profile_picture_url=upload.url if upload is not None else None,
+        profile_picture_filename=upload.filename if upload is not None else None,
         profile_picture_is_nsfw=None,
         profile_picture_classification=None,
     )
@@ -188,3 +193,21 @@ async def read_user_profile(
     if not db_user_profile:
         raise HTTPException(status_code=404, detail="User profile not found.")
     return db_user_profile
+
+
+# Endpoint to fetch the profile picture of a user. This endpoint requires no authentication.
+# This endpoint foregoes a direct access by the frontend to the garage storage layer, with the latter forbidding public access.
+@router.get("/profile/picture/{filename}")
+async def get_profile_picture_endpoint(filename: str):
+    print(f"[profile/picture] Fetching profile picture: '{filename}'")
+    try:
+        file_bytes, content_type = get_profile_picture(filename)
+        print(
+            f"[profile/picture] Successfully fetched '{filename}', content_type='{content_type}', size={len(file_bytes)} bytes"
+        )
+    except Exception as e:
+        print(
+            f"[profile/picture] Failed to fetch '{filename}': {type(e).__name__}: {e}"
+        )
+        raise HTTPException(status_code=404, detail="Profile picture not found.")
+    return Response(content=file_bytes, media_type=content_type)

@@ -3,9 +3,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from routes.user import router as user_router
 from routes.admin import router as admin_router
+from database.base import Base
+from database.session import engine
 
 # Load environment variables from .env file
 load_dotenv()
+
+# Create database tables if they don't exist.
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 app.include_router(user_router)

@@ -30,6 +30,8 @@ app = FastAPI(lifespan=lifespan)
 
 @app.get("/health")
 async def health_check():
+    if "nsfw" not in models or "classify" not in models:
+        raise HTTPException(status_code=503, detail="Models not loaded yet.")
     return {"status": "ok"}
 
 

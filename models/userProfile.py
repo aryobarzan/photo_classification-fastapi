@@ -26,7 +26,7 @@ class UserProfile(Base):
     place_of_residence: Mapped[str] = mapped_column()
     country_of_origin: Mapped[str] = mapped_column(index=True)
     description: Mapped[str | None] = mapped_column()
-    profile_picture_url: Mapped[str | None] = mapped_column()
+    profile_picture_filename: Mapped[str | None] = mapped_column()
     # Initially, when the user uploads a profile picture, we do not yet know whether the picture is nsfw.
     # Hence, `profile_picture_is_nsfw` is set to None at the beginning. After nsfw detection is done, it will be updated to either True or False.
     profile_picture_is_nsfw: Mapped[bool | None] = mapped_column()

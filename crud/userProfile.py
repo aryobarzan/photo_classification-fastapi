@@ -15,14 +15,14 @@ def upsert_user_profile(
     db: Session,
     user_id: int,
     user_profile: UserProfileCreateSchema,
-    profile_picture_url: str | None = None,
+    profile_picture_filename: str | None = None,
     profile_picture_is_nsfw: bool | None = None,
     profile_picture_classification: str | None = None,
 ):
     # Upsert approach inspired by: https://docs.sqlalchemy.org/en/21/dialects/postgresql.html#insert-on-conflict-upsert
     user_profile_data = user_profile.model_dump()
-    if profile_picture_url is not None:
-        user_profile_data["profile_picture_url"] = profile_picture_url
+    if profile_picture_filename is not None:
+        user_profile_data["profile_picture_filename"] = profile_picture_filename
     if profile_picture_is_nsfw is not None:
         user_profile_data["profile_picture_is_nsfw"] = profile_picture_is_nsfw
     if profile_picture_classification is not None:
@@ -49,7 +49,7 @@ def upsert_user_profile(
 def set_user_profile_picture(
     db: Session,
     user_id: int,
-    profile_picture_url: str | None,
+    profile_picture_filename: str | None,
     profile_picture_is_nsfw: bool | None = None,
     profile_picture_classification: str | None = None,
 ) -> UserProfile:
@@ -60,7 +60,7 @@ def set_user_profile_picture(
         raise UserProfileDoesNotExistException(
             f"User profile for user with id '{user_id}' does not exist."
         )
-    db_user_profile.profile_picture_url = profile_picture_url
+    db_user_profile.profile_picture_filename = profile_picture_filename
     db_user_profile.profile_picture_is_nsfw = profile_picture_is_nsfw
     db_user_profile.profile_picture_classification = profile_picture_classification
     db.commit()

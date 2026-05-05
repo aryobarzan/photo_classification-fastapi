@@ -22,8 +22,9 @@ A one-time setup run is required to finalize the storage layer's (Garage) settin
    2. Copy the value of `Secret key:` to `STORAGE_SECRET_KEY` in your environment file `.env`
 6. Run the following command: `docker compose exec garage /garage bucket create profile-pictures`
 7. Run the following command: `docker compose exec garage /garage bucket allow --read --write profile-pictures --key my-app-key`
+8. Run the following command: `docker-compose down`
 
-Your setup of the environment file and docker is now complete. Run `docker-compose down` to shutdown the Docker containers.
+Your setup of the environment file and docker is now complete.
 
 # Run
 

@@ -9,17 +9,30 @@ def get_s3_client():
         endpoint_url=getenv("STORAGE_ENDPOINT"),
         aws_access_key_id=getenv("STORAGE_ACCESS_KEY"),
         aws_secret_access_key=getenv("STORAGE_SECRET_KEY"),
+        region_name="garage",
         # Use path-style addressing for S3-compatible storage
         config=Config(s3={"addressing_style": "path"}),
     )
 
 
-def upload_profile_picture(file_bytes: bytes, filename: str) -> str:
+def upload_profile_picture(file_bytes: bytes, filename: str, content_type: str) -> str:
     s3 = get_s3_client()
 
     bucket = getenv("STORAGE_BUCKET_PROFILE_PICTURES") or "profile-pictures"
-    s3.put_object(Bucket=bucket, Key=filename, Body=file_bytes)
-    return f"{getenv('STORAGE_ENDPOINT')}/{bucket}/{filename}"
+    s3.put_object(
+        Bucket=bucket, Key=filename, Body=file_bytes, ContentType=content_type
+    )
+    return filename
+
+
+def get_profile_picture(filename: str) -> tuple[bytes, str]:
+    s3 = get_s3_client()
+
+    bucket = getenv("STORAGE_BUCKET_PROFILE_PICTURES") or "profile-pictures"
+    response = s3.get_object(Bucket=bucket, Key=filename)
+    return response["Body"].read(), response.get(
+        "ContentType", "application/octet-stream"
+    )
 
 
 def delete_profile_picture(filename: str):

@@ -28,7 +28,8 @@ class UserProfileReadSchema(BaseModel):
     place_of_residence: str
     country_of_origin: CountryAlpha2
     description: str | None = None
-    profile_picture_url: str | None = None
+    profile_picture_filename: str | None = None
+    profile_picture_is_nsfw: bool | None = None
     profile_picture_classification: str | None = None
     created_at: datetime
     updated_at: datetime

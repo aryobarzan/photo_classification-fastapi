@@ -1,6 +1,9 @@
 FROM python:3.13-slim
 
 WORKDIR /app
+# Install curl for health checks and remove apt cache to reduce image size
+# (python-slim doesn't include curl)
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 # --mount=type=cache,target=/root/.cache/pip allows caching of pip packages between builds
