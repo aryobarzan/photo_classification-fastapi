@@ -76,21 +76,21 @@ def get_user_profile_by_user_id(db: Session, user_id: int) -> UserProfile | None
 
 def get_user_profiles(
     db: Session,
-    minAge: int | None = None,
-    maxAge: int | None = None,
-    exactAge: int | None = None,
+    min_age: int | None = None,
+    max_age: int | None = None,
+    exact_age: int | None = None,
     genders: list[Gender] | None = None,
     place_of_residence: str | None = None,
     country_of_origin: str | None = None,
 ) -> list[UserProfile]:
     statement = select(UserProfile)
-    if exactAge is not None:
-        statement = statement.where(UserProfile.age == exactAge)
+    if exact_age is not None:
+        statement = statement.where(UserProfile.age == exact_age)
     else:
-        if minAge is not None:
-            statement = statement.where(UserProfile.age >= minAge)
-        if maxAge is not None:
-            statement = statement.where(UserProfile.age <= maxAge)
+        if min_age is not None:
+            statement = statement.where(UserProfile.age >= min_age)
+        if max_age is not None:
+            statement = statement.where(UserProfile.age <= max_age)
     if genders:
         statement = statement.where(UserProfile.gender.in_(genders))
     if place_of_residence is not None:
