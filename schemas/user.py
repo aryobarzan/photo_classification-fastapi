@@ -1,12 +1,12 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from models.enums import UserRole
 
 
 # Used for creating a new user
 class UserCreateSchema(BaseModel):
-    username: str
-    password: str
+    username: str = Field(min_length=4, max_length=32, pattern=r"^[a-zA-Z0-9_-]+$")
+    password: str = Field(min_length=8, max_length=64)
 
 
 # Used for reading user data

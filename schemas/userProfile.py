@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pydantic_extra_types.country import CountryAlpha2
 from datetime import datetime
 
@@ -7,14 +7,14 @@ from models.enums import Gender
 
 # Used for creating a new user profile
 class UserProfileCreateSchema(BaseModel):
-    first_name: str
-    last_name: str
-    age: int
+    first_name: str = Field(min_length=2, max_length=32, pattern=r"^[a-zA-Z-]+$")
+    last_name: str = Field(min_length=2, max_length=32, pattern=r"^[a-zA-Z-]+$")
+    age: int = Field(ge=18, le=120)
     gender: Gender
-    place_of_residence: str
+    place_of_residence: str = Field(min_length=2, max_length=100)
     # `CountryAlpha2` ensures that only valid ISO 3166-1 alpha-2 country codes can be used, e.g., `US` or `DE`.
     country_of_origin: CountryAlpha2
-    description: str | None = None
+    description: str | None = Field(max_length=500, default=None)
 
 
 # Used for reading user profile data
