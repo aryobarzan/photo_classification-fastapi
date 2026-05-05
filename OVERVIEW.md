@@ -2,6 +2,8 @@
 
 This document outlines the main design choices behind this project, as well as various security and safety considerations.
 
+![Architecture diagram](DIAGRAM_photo-classification-architecture.jpg)
+
 ## Database
 
 ### SQL vs NoSQL
@@ -96,13 +98,15 @@ For both purposes, relevant machine learning models were used via the `transform
 
 Given the separate business logic of this classification process, it was separated into its own service, rather than being bundled into the same FastAPI server.
 
-More importantly, when connecting the two services together, an important design choice has to be made: upon uploading their profile details and picture to the FastAPI server, the backend (API server) will proceed with validating the profile details and storing them in the corresponding PostgreSQL table. At the same time, the picture has to be forwarded to the classification service for verifying its NSFW content and its actual classification label.
+More importantly, when connecting the two services together, an important design choice has to be made: upon uploading their profile details and picture to the FastAPI server, the backend (API server) will proceed with validating the profile details and picture, uploading the picture to Garage, and storing the profile details along with the picture reference in PostgreSQL — all synchronously before responding to the frontend.
 
 However, the frontend should not have to wait a long time for a response from the API server, owing to this potentially expensive classification process.
 
-As such, the API server actually delegates this classification process to a background task, which means that the API server will not wait for the classification result, but immediately respond to the frontend upon having stored the user's profile details in the database.
+As such, the API server delegates the classification to a background task, which only starts after the response has been returned to the frontend. The classification service is therefore never called as part of the main request cycle.
 
 Subsequently, the frontend is provided with a separate polling endpoint (`/users/profile/picture/status`), which allows them to periodically check on their profile picture's classification result, until finally that background task has finished as well.
+
+![Picture upload flow diagram](DIAGRAM_photo-classification-picture-upload-flow.jpg)
 
 ### Filtering
 
