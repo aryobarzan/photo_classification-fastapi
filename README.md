@@ -8,7 +8,12 @@ For design and security documentation, view the separate `OVERVIEW.md` file.
 
 Adjust the example environment `.env-example` by replacing the missing values, then rename the file to `.env`.
 
-1. Set up a secret key `SECRET_KEY` for the JWT authentication using the following command: `openssl rand -hex 32`
+1. Generate an RSA keypair for signing JWTs (RS256) in the project root:
+   ```
+   openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out private.pem
+   openssl rsa -pubout -in private.pem -out public.pem
+   ```
+   The paths can be changed via `JWT_PRIVATE_KEY_PATH` / `JWT_PUBLIC_KEY_PATH`. Never commit `private.pem`.
 2. Set up a secret key `GARAGE_RPC_SECRET` for the storage layer Garage using the same command: `openssl rand -hex 32`
 
 The other key-value pairs can be left as is for this demonstration.

@@ -84,3 +84,6 @@ static/collected/
 # Alembic
 # (keep alembic.ini and migrations/ tracked, but ignore auto-generated duplicates)
 alembic/versions/*.pyc
+
+# JWT keys
+*.pem
