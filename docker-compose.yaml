@@ -54,8 +54,8 @@ services:
     environment:
       - GARAGE_RPC_SECRET=${GARAGE_RPC_SECRET}
     ports:
-      - "3900:3900" # S3 API
-      - "3902:3902" # Admin API
+      - "13900:3900" # S3 API
+      - "13902:3902" # Admin API
     volumes:
       - ./garage.toml:/etc/garage.toml
       - garage_meta:/var/lib/garage/meta
