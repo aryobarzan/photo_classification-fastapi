@@ -48,7 +48,9 @@ async def create_user(
             status_code=409,
             detail=f"A user with this username ('{user.username}') already exists.",
         )
-    access_token = create_access_token(data={"sub": db_user.username})
+    access_token = create_access_token(
+        data={"sub": db_user.username, "role": db_user.role.value}
+    )
     return UserRegisterLoginSchema(
         user=UserReadSchema.model_validate(db_user),
         access_token=access_token,
@@ -68,7 +70,9 @@ async def login(
     password_valid = verify_password(form_data.password, hashed_password)
     if not db_user or not password_valid:
         raise HTTPException(status_code=401, detail="Incorrect username or password.")
-    access_token = create_access_token(data={"sub": db_user.username})
+    access_token = create_access_token(
+        data={"sub": db_user.username, "role": db_user.role.value}
+    )
     # `model_validate` is used to convert the SQLAlchemy model to a Pydantic model for the response.
     # This ensures that the response adheres to the defined schema and only includes the fields specified in `UserReadSchema`.
     return UserRegisterLoginSchema(
