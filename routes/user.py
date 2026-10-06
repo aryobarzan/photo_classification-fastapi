@@ -13,6 +13,7 @@ from fastapi import (
 )
 from fastapi.responses import Response
 from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import ValidationError
 from schemas.user import UserCreateSchema, UserReadSchema, UserRegisterLoginSchema
 from schemas.userProfile import (
     UserProfileCreateSchema,
@@ -34,6 +35,9 @@ from core.storage import (
 )
 
 router = APIRouter(prefix="/users", tags=["users"])
+
+# Precomputed once so that unknown-user logins don't re-hash on every request.
+DUMMY_PASSWORD_HASH = hash_password("dummy")
 
 
 @router.post("/register", response_model=UserRegisterLoginSchema, status_code=201)
@@ -66,7 +70,7 @@ async def login(
     db_user = crud_user.get_user_by_username(db, form_data.username)
     # If the user does not exist, we still perform a dummy password verification.
     # reason: prevent timing attacks that can reveal whether a user exists based on how long the server takes to respond.
-    hashed_password = db_user.hashed_password if db_user else hash_password("dummy")
+    hashed_password = db_user.hashed_password if db_user else DUMMY_PASSWORD_HASH
     password_valid = verify_password(form_data.password, hashed_password)
     if not db_user or not password_valid:
         raise HTTPException(status_code=401, detail="Incorrect username or password.")
@@ -166,6 +170,14 @@ async def create_user_profile(
     # 6. If the picture is NSFW, delete the picture from storage and update the user profile with `profile_picture_is_nsfw=True` and `profile_picture_classification=None`.
     # 7. If the picture is not NSFW, update the user profile with `profile_picture_is_nsfw=False` and `profile_picture_classification` being the classification result.
 
+    # Parse the profile data first, so invalid input is rejected (422) before anything is uploaded.
+    try:
+        user_profile_data = UserProfileCreateSchema.model_validate_json(profile_data)
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=422, detail=e.errors(include_url=False, include_context=False)
+        )
+
     # 1. Validate profile picture type and size, and upload to storage.
     upload: ProfilePictureUpload | None = None
     if profile_picture is not None:
@@ -173,7 +185,6 @@ async def create_user_profile(
             profile_picture, current_user.id
         )
     # 3. Save profile data to db, with `profile_picture_is_nsfw` being None at the moment
-    user_profile_data = UserProfileCreateSchema.model_validate_json(profile_data)
     db_user_profile = crud_user_profile.upsert_user_profile(
         db,
         user_id=current_user.id,
